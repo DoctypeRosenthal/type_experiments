@@ -1,7 +1,10 @@
-module Trigger exposing (OptionsView, Trigger(..), TriggerView, ValueView(..), allCriteriaNames, conditionsView, criteriaView, criterionName, defaultTrigger, fromConditionName, fromCriterionName, fromValue, toView)
+module Trigger exposing (OptionsView, Trigger(..), TriggerView, ValueView(..), allCriterionKeys, conditionsView, criteriaView, criterionKey, defaultTrigger, fromConditionName, fromCriterionName, fromValue, toView)
 
 import AmountCondition exposing (AmountCondition, amountConditionNames)
 import BaseTypes exposing (Amount, Currency, NatNum, Percent)
+import Json.Decode
+import Json.Decode.Pipeline exposing (required)
+import Json.Encode
 import NatNumCondition exposing (NatNumCondition, names)
 import PercentCondition exposing (PercentCondition, percentConditionNames)
 import Status
@@ -27,22 +30,22 @@ allTriggers : Currency -> List Trigger
 allTriggers currency =
     let
         defaultAmountCondition =
-            AmountCondition.default currency
+            AmountCondition.defaultCondition currency
     in
-    [ Clicks NatNumCondition.default
-    , Impressions NatNumCondition.default
-    , ACoS PercentCondition.default
-    , CTR PercentCondition.default
+    [ Clicks NatNumCondition.defaultCondition
+    , Impressions NatNumCondition.defaultCondition
+    , ACoS PercentCondition.defaultCondition
+    , CTR PercentCondition.defaultCondition
     , Sales defaultAmountCondition
     , Cost defaultAmountCondition
     , CPC defaultAmountCondition
-    , Status StatusCondition.default
+    , Status StatusCondition.defaultCondition
     ]
 
 
 defaultTrigger : Trigger
 defaultTrigger =
-    Clicks NatNumCondition.default
+    Clicks NatNumCondition.defaultCondition
 
 
 
@@ -53,20 +56,20 @@ fromCriterionName : Currency -> String -> Trigger
 fromCriterionName currency string =
     let
         defaultAmountCondition =
-            AmountCondition.default currency
+            AmountCondition.defaultCondition currency
     in
     case string of
         "Clicks" ->
-            Clicks NatNumCondition.default
+            Clicks NatNumCondition.defaultCondition
 
         "Impressions" ->
-            Impressions NatNumCondition.default
+            Impressions NatNumCondition.defaultCondition
 
         "ACoS" ->
-            ACoS PercentCondition.default
+            ACoS PercentCondition.defaultCondition
 
         "CTR" ->
-            CTR PercentCondition.default
+            CTR PercentCondition.defaultCondition
 
         "Sales" ->
             Sales defaultAmountCondition
@@ -78,14 +81,14 @@ fromCriterionName currency string =
             CPC defaultAmountCondition
 
         "Status" ->
-            Status StatusCondition.default
+            Status StatusCondition.defaultCondition
 
         _ ->
-            Clicks NatNumCondition.default
+            Clicks NatNumCondition.defaultCondition
 
 
-fromConditionName : Currency -> Trigger -> String -> Trigger
-fromConditionName currency trigger name =
+fromConditionName : Currency -> String -> Trigger -> Trigger
+fromConditionName currency name trigger =
     let
         amountCondition =
             AmountCondition.fromName currency
@@ -118,8 +121,8 @@ fromConditionName currency trigger name =
            )
 
 
-fromValue : Currency -> Trigger -> String -> Trigger
-fromValue currency trigger string =
+fromValue : Currency -> String -> Trigger -> Trigger
+fromValue currency string trigger =
     string
         |> (case trigger of
                 Clicks condition ->
@@ -157,8 +160,8 @@ fromValue currency trigger string =
 -- Translations
 
 
-criterionName : Trigger -> String
-criterionName trigger =
+criterionKey : Trigger -> String
+criterionKey trigger =
     case trigger of
         Clicks _ ->
             "Clicks"
@@ -185,9 +188,65 @@ criterionName trigger =
             "Status"
 
 
-allCriteriaNames : Currency -> List String
-allCriteriaNames =
-    List.map criterionName << allTriggers
+allCriterionKeys : Currency -> List String
+allCriterionKeys =
+    List.map criterionKey << allTriggers
+
+
+conditionKey : Trigger -> String
+conditionKey trigger =
+    case trigger of
+        Clicks condition ->
+            NatNumCondition.toName condition
+
+        Impressions condition ->
+            NatNumCondition.toName condition
+
+        ACoS condition ->
+            PercentCondition.toName condition
+
+        CTR condition ->
+            PercentCondition.toName condition
+
+        Sales condition ->
+            AmountCondition.toName condition
+
+        Cost condition ->
+            AmountCondition.toName condition
+
+        CPC condition ->
+            AmountCondition.toName condition
+
+        Status condition ->
+            StatusCondition.toName condition
+
+
+valueToStr : Trigger -> String
+valueToStr trigger =
+    case trigger of
+        Clicks condition ->
+            NatNumCondition.valueStr condition
+
+        Impressions condition ->
+            NatNumCondition.valueStr condition
+
+        ACoS condition ->
+            PercentCondition.valueStr condition
+
+        CTR condition ->
+            PercentCondition.valueStr condition
+
+        Sales condition ->
+            AmountCondition.valueStr condition
+
+        Cost condition ->
+            AmountCondition.valueStr condition
+
+        CPC condition ->
+            AmountCondition.valueStr condition
+
+        Status condition ->
+            StatusCondition.valueStr condition
 
 
 type ValueView
@@ -221,7 +280,7 @@ toView currency trigger =
 
 criteriaView : Currency -> Trigger -> OptionsView
 criteriaView currency trigger =
-    OptionsView (allCriteriaNames currency) <| criterionName trigger
+    OptionsView (allCriterionKeys currency) <| criterionKey trigger
 
 
 natNumOptions =
@@ -368,3 +427,54 @@ valueView trigger =
 
         Status condition ->
             statusValView condition
+
+
+
+-- DE/ENCODERS
+
+
+type alias TriggerJson =
+    { field : String
+    , condition_key : String
+    , value : String
+    , value_type : String
+    }
+
+
+decode : Json.Decode.Decoder TriggerJson
+decode =
+    Json.Decode.succeed TriggerJson
+        |> required "field" Json.Decode.string
+        |> required "condition_key" Json.Decode.string
+        |> required "value" Json.Decode.string
+        |> required "value_type" Json.Decode.string
+
+
+encode : TriggerJson -> Json.Encode.Value
+encode { value, value_type, condition_key, field } =
+    Json.Encode.object
+        [ ( "value", Json.Encode.string value )
+        , ( "value_type", Json.Encode.string value_type )
+        , ( "condition_key", Json.Encode.string condition_key )
+        , ( "field", Json.Encode.string field )
+        ]
+
+
+
+-- TRANSFORMATORS
+
+
+jsonToTrigger : Currency -> TriggerJson -> Trigger
+jsonToTrigger currency json =
+    fromCriterionName currency json.field
+        |> fromConditionName currency json.condition_key
+        |> fromValue currency json.value
+
+
+triggerToJson : Trigger -> TriggerJson
+triggerToJson trigger =
+    { field = criterionKey trigger
+    , condition_key = conditionKey trigger
+    , value = valueToStr trigger
+    , value_type = ""
+    }

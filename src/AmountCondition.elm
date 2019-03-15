@@ -1,6 +1,6 @@
-module AmountCondition exposing (AmountCondition(..), amountConditionNames, amountConditions, default, defaultAmount, defaultPercent, fromName, fromValue, toName)
+module AmountCondition exposing (AmountCondition(..), amountConditionNames, amountConditions, defaultAmount, defaultCondition, defaultPercent, fromName, fromValue, toName, valueStr)
 
-import BaseTypes exposing (Amount, Currency, Percent, amount, amountFromStr, percent, percentFromStr)
+import BaseTypes exposing (Amount, Currency, Percent, amount, amountFromStr, amountToStr, percent, percentFromStr, percentToStr)
 
 
 type AmountCondition
@@ -13,6 +13,8 @@ type AmountCondition
     | DecreasedByAmount Amount
 
 
+{-| The "Enum" representation.
+-}
 amountConditions : Currency -> List AmountCondition
 amountConditions currency =
     let
@@ -29,8 +31,8 @@ amountConditions currency =
     ]
 
 
-default : Currency -> AmountCondition
-default =
+defaultCondition : Currency -> AmountCondition
+defaultCondition =
     LessThan << defaultAmount
 
 
@@ -138,3 +140,28 @@ fromValue currency condition string =
                 DecreasedByAmount _ ->
                     DecreasedByAmount << amountWithDefault
            )
+
+
+valueStr : AmountCondition -> String
+valueStr condition =
+    case condition of
+        LessThan x ->
+            amountToStr x
+
+        GreaterThan x ->
+            amountToStr x
+
+        Equals x ->
+            amountToStr x
+
+        IncreasedByPercent x ->
+            percentToStr x
+
+        DecreasedByPercent x ->
+            percentToStr x
+
+        IncreasedByAmount x ->
+            amountToStr x
+
+        DecreasedByAmount x ->
+            amountToStr x

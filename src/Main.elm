@@ -1,6 +1,6 @@
 module Main exposing (Model, Msg(..), init, main, update, view)
 
-import BaseTypes exposing (Currency, amountToStr, natNumToStr, percentToStr, symbolFromAmount, usd)
+import BaseTypes exposing (Currency, amountToStr, euro, natNumToStr, percentToStr, symbolFromAmount, usd)
 import Browser
 import Html exposing (Html, div, h2, img, text)
 import Html.Attributes exposing (src)
@@ -20,7 +20,7 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { triggers = [], currency = usd }, Cmd.none )
+    ( { triggers = [], currency = euro }, Cmd.none )
 
 
 
@@ -74,10 +74,10 @@ update msg model =
             replaceTrigger index (Trigger.fromCriterionName model.currency string)
 
         SetTriggerCondition index trigger string ->
-            replaceTrigger index (Trigger.fromConditionName model.currency trigger string)
+            replaceTrigger index (Trigger.fromConditionName model.currency string trigger)
 
         SetTriggerValue index trigger string ->
-            replaceTrigger index (Trigger.fromValue model.currency trigger string)
+            replaceTrigger index (Trigger.fromValue model.currency string trigger)
 
 
 

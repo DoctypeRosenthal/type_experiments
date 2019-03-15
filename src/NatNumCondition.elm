@@ -1,6 +1,6 @@
-module NatNumCondition exposing (NatNumCondition(..), default, defaultNatNum, defaultPercent, fromName, names, natNumConditions, toName, fromValue)
+module NatNumCondition exposing (NatNumCondition(..), defaultCondition, defaultNatNum, defaultPercent, fromName, fromValue, names, natNumConditions, toName, valueStr)
 
-import BaseTypes exposing (NatNum, Percent, natNum, natNumFromStr, percent, percentFromStr)
+import BaseTypes exposing (NatNum, Percent, natNum, natNumFromStr, natNumToStr, percent, percentFromStr, percentToStr)
 
 
 type NatNumCondition
@@ -11,6 +11,8 @@ type NatNumCondition
     | DecreasedBy Percent
 
 
+{-| The "Enum" representation.
+-}
 natNumConditions : List NatNumCondition
 natNumConditions =
     [ LessThan defaultNatNum
@@ -21,8 +23,8 @@ natNumConditions =
     ]
 
 
-default : NatNumCondition
-default =
+defaultCondition : NatNumCondition
+defaultCondition =
     LessThan defaultNatNum
 
 
@@ -107,3 +109,22 @@ fromValue condition string =
                 DecreasedBy _ ->
                     DecreasedBy << percentWithDefault
            )
+
+
+valueStr : NatNumCondition -> String
+valueStr condition =
+    case condition of
+        LessThan x ->
+            natNumToStr x
+
+        GreaterThan x ->
+            natNumToStr x
+
+        Equals x ->
+            natNumToStr x
+
+        IncreasedBy x ->
+            percentToStr x
+
+        DecreasedBy x ->
+            percentToStr x

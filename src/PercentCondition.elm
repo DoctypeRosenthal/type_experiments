@@ -1,6 +1,6 @@
-module PercentCondition exposing (PercentCondition(..), default, defaultPercent, fromName, percentConditionNames, percentConditions, toName, fromValue)
+module PercentCondition exposing (PercentCondition(..), defaultCondition, defaultPercent, fromName, fromValue, percentConditionNames, percentConditions, toName, valueStr)
 
-import BaseTypes exposing (Percent, percent, percentFromStr)
+import BaseTypes exposing (Percent, percent, percentFromStr, percentToStr)
 
 
 type PercentCondition
@@ -11,6 +11,8 @@ type PercentCondition
     | DecreasedBy Percent
 
 
+{-| The "Enum" representation.
+-}
 percentConditions : List PercentCondition
 percentConditions =
     [ LessThan defaultPercent
@@ -21,8 +23,8 @@ percentConditions =
     ]
 
 
-default : PercentCondition
-default =
+defaultCondition : PercentCondition
+defaultCondition =
     LessThan defaultPercent
 
 
@@ -99,3 +101,23 @@ fromValue condition string =
                 DecreasedBy _ ->
                     DecreasedBy << percentWithDefault
            )
+
+
+valueStr : PercentCondition -> String
+valueStr condition =
+    percentToStr <|
+        case condition of
+            LessThan x ->
+                x
+
+            GreaterThan x ->
+                x
+
+            Equals x ->
+                x
+
+            IncreasedBy x ->
+                x
+
+            DecreasedBy x ->
+                x
