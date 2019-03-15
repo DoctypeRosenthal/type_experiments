@@ -1,4 +1,4 @@
-module NatNumCondition exposing (NatNumCondition(..), defaultCondition, defaultNatNum, defaultPercent, fromName, fromValue, names, natNumConditions, toName, valueStr)
+module NatNumCondition exposing (NatNumCondition(..), defaultCondition, defaultNatNum, defaultPercent, fromName, fromValue, names, natNumConditions, toName, valueStr, valueType)
 
 import BaseTypes exposing (NatNum, Percent, natNum, natNumFromStr, natNumToStr, percent, percentFromStr, percentToStr)
 
@@ -42,19 +42,19 @@ toName : NatNumCondition -> String
 toName condition =
     case condition of
         LessThan _ ->
-            "LessThan"
+            "less_than"
 
         GreaterThan _ ->
-            "GreaterThan"
+            "greater_than"
 
         Equals _ ->
-            "Equals"
+            "equals"
 
         IncreasedBy _ ->
-            "IncreasedByPercent"
+            "increases_by"
 
         DecreasedBy _ ->
-            "DecreasedByPercent"
+            "decreases_by"
 
 
 names =
@@ -64,19 +64,19 @@ names =
 fromName : String -> NatNumCondition
 fromName name =
     case name of
-        "LessThan" ->
+        "less_than" ->
             LessThan defaultNatNum
 
-        "GreaterThan" ->
+        "greater_than" ->
             GreaterThan defaultNatNum
 
-        "Equals" ->
+        "equals" ->
             Equals defaultNatNum
 
-        "IncreasedByPercent" ->
+        "increases_by" ->
             IncreasedBy defaultPercent
 
-        "DecreasedByPercent" ->
+        "decreases_by" ->
             DecreasedBy defaultPercent
 
         _ ->
@@ -128,3 +128,14 @@ valueStr condition =
 
         DecreasedBy x ->
             percentToStr x
+
+valueType : NatNumCondition -> String
+valueType condition =
+    case condition of
+        IncreasedBy x ->
+            "percentage"
+
+        DecreasedBy x ->
+            "percentage"
+
+        _ -> "natural_number"

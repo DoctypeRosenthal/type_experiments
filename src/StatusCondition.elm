@@ -1,23 +1,23 @@
-module StatusCondition exposing (StatusCondition(..), allNames, defaultCondition, defaultStatus, fromName, fromValue, statusConditions, toName, valueStr)
+module StatusCondition exposing (StatusCondition(..), allNames, defaultCondition, defaultStatus, fromName, fromValue, statusConditions, toName, valueStr, valueType)
 
 import Status exposing (Status(..))
 
 
 type StatusCondition
-    = ChangedTo Status
+    = Equals Status
 
 
 {-| The "Enum" representation.
 -}
 statusConditions : List StatusCondition
 statusConditions =
-    [ ChangedTo defaultStatus
+    [ Equals defaultStatus
     ]
 
 
 defaultCondition : StatusCondition
 defaultCondition =
-    ChangedTo defaultStatus
+    Equals defaultStatus
 
 
 defaultStatus : Status
@@ -28,8 +28,8 @@ defaultStatus =
 toName : StatusCondition -> String
 toName condition =
     case condition of
-        ChangedTo _ ->
-            "ChangedTo"
+        Equals _ ->
+            "status_change"
 
 
 allNames =
@@ -39,15 +39,21 @@ allNames =
 fromName : String -> StatusCondition
 fromName _ =
     -- for now only one possible status condition. Unlikely to change in the future.
-    ChangedTo defaultStatus
+    Equals defaultStatus
 
 
 fromValue : StatusCondition -> String -> StatusCondition
 fromValue condition =
     -- for now only one possible condition.
-    ChangedTo << Status.fromString
+    Equals << Status.fromString
 
 
 valueStr : StatusCondition -> String
-valueStr (ChangedTo x) =
+valueStr (Equals x) =
     Status.toName x
+
+
+valueType : StatusCondition -> String
+valueType _ =
+    -- Param is only there to equalize interface among all conditions.
+    "status"

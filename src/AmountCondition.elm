@@ -1,4 +1,4 @@
-module AmountCondition exposing (AmountCondition(..), amountConditionNames, amountConditions, defaultAmount, defaultCondition, defaultPercent, fromName, fromValue, toName, valueStr)
+module AmountCondition exposing (AmountCondition(..), amountConditionNames, amountConditions, defaultAmount, defaultCondition, defaultPercent, fromName, fromValue, toName, valueStr, valueType)
 
 import BaseTypes exposing (Amount, Currency, Percent, amount, amountFromStr, amountToStr, percent, percentFromStr, percentToStr)
 
@@ -50,25 +50,25 @@ toName : AmountCondition -> String
 toName condition =
     case condition of
         LessThan _ ->
-            "LessThan"
+            "less_than"
 
         GreaterThan _ ->
-            "GreaterThan"
+            "greater_than"
 
         Equals _ ->
-            "Equals"
+            "equals"
 
         IncreasedByPercent _ ->
-            "IncreasedByPercent"
+            "increases_by"
 
         DecreasedByPercent _ ->
-            "DecreasedByPercent"
+            "decreases_by"
 
         IncreasedByAmount _ ->
-            "IncreasedByAmount"
+            "increases_with"
 
         DecreasedByAmount _ ->
-            "DecreasedByAmount"
+            "decreases_with"
 
 
 amountConditionNames : Currency -> List String
@@ -83,25 +83,25 @@ fromName currency name =
             defaultAmount currency
     in
     case name of
-        "LessThan" ->
+        "less_than" ->
             LessThan anAmount
 
-        "GreaterThan" ->
+        "greater_than" ->
             GreaterThan anAmount
 
-        "Equals" ->
+        "equals" ->
             Equals anAmount
 
-        "IncreasedByPercent" ->
+        "increases_by" ->
             IncreasedByPercent defaultPercent
 
-        "DecreasedByPercent" ->
+        "decreases_by" ->
             DecreasedByPercent defaultPercent
 
-        "IncreasedByAmount" ->
+        "increases_with" ->
             IncreasedByAmount anAmount
 
-        "DecreasedByAmount" ->
+        "decreases_with" ->
             DecreasedByAmount anAmount
 
         _ ->
@@ -165,3 +165,16 @@ valueStr condition =
 
         DecreasedByAmount x ->
             amountToStr x
+
+
+valueType : AmountCondition -> String
+valueType condition =
+    case condition of
+        IncreasedByPercent _ ->
+            "percentage"
+
+        DecreasedByPercent _ ->
+            "percentage"
+
+        _ ->
+            "amount"

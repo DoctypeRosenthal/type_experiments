@@ -23,6 +23,7 @@ type Trigger
     | Sales AmountCondition
     | Cost AmountCondition
     | CPC AmountCondition
+    | Bid AmountCondition
     | Status StatusCondition
 
 
@@ -39,6 +40,7 @@ allTriggers currency =
     , Sales defaultAmountCondition
     , Cost defaultAmountCondition
     , CPC defaultAmountCondition
+    , Bid defaultAmountCondition
     , Status StatusCondition.defaultCondition
     ]
 
@@ -59,28 +61,31 @@ fromCriterionName currency string =
             AmountCondition.defaultCondition currency
     in
     case string of
-        "Clicks" ->
+        "clicks" ->
             Clicks NatNumCondition.defaultCondition
 
-        "Impressions" ->
+        "impressions" ->
             Impressions NatNumCondition.defaultCondition
 
-        "ACoS" ->
+        "acos" ->
             ACoS PercentCondition.defaultCondition
 
-        "CTR" ->
+        "ctr" ->
             CTR PercentCondition.defaultCondition
 
-        "Sales" ->
+        "sales" ->
             Sales defaultAmountCondition
 
-        "Cost" ->
+        "cost" ->
             Cost defaultAmountCondition
 
-        "CPC" ->
+        "cpc" ->
             CPC defaultAmountCondition
 
-        "Status" ->
+        "bid" ->
+            Bid defaultAmountCondition
+
+        "status" ->
             Status StatusCondition.defaultCondition
 
         _ ->
@@ -116,6 +121,9 @@ fromConditionName currency name trigger =
                 CPC _ ->
                     CPC << amountCondition
 
+                Bid _ ->
+                    Bid << amountCondition
+
                 Status _ ->
                     Status << StatusCondition.fromName
            )
@@ -146,6 +154,9 @@ fromValue currency string trigger =
                 CPC condition ->
                     CPC << AmountCondition.fromValue currency condition
 
+                Bid condition ->
+                    Bid << AmountCondition.fromValue currency condition
+
                 Status condition ->
                     Status << StatusCondition.fromValue condition
            )
@@ -158,95 +169,6 @@ fromValue currency string trigger =
 --setValue : Trigger -> String -> Trigger
 -- VIEW
 -- Translations
-
-
-criterionKey : Trigger -> String
-criterionKey trigger =
-    case trigger of
-        Clicks _ ->
-            "Clicks"
-
-        Impressions _ ->
-            "Impressions"
-
-        ACoS _ ->
-            "ACoS"
-
-        CTR _ ->
-            "CTR"
-
-        Sales _ ->
-            "Sales"
-
-        Cost _ ->
-            "Cost"
-
-        CPC _ ->
-            "CPC"
-
-        Status _ ->
-            "Status"
-
-
-allCriterionKeys : Currency -> List String
-allCriterionKeys =
-    List.map criterionKey << allTriggers
-
-
-conditionKey : Trigger -> String
-conditionKey trigger =
-    case trigger of
-        Clicks condition ->
-            NatNumCondition.toName condition
-
-        Impressions condition ->
-            NatNumCondition.toName condition
-
-        ACoS condition ->
-            PercentCondition.toName condition
-
-        CTR condition ->
-            PercentCondition.toName condition
-
-        Sales condition ->
-            AmountCondition.toName condition
-
-        Cost condition ->
-            AmountCondition.toName condition
-
-        CPC condition ->
-            AmountCondition.toName condition
-
-        Status condition ->
-            StatusCondition.toName condition
-
-
-valueToStr : Trigger -> String
-valueToStr trigger =
-    case trigger of
-        Clicks condition ->
-            NatNumCondition.valueStr condition
-
-        Impressions condition ->
-            NatNumCondition.valueStr condition
-
-        ACoS condition ->
-            PercentCondition.valueStr condition
-
-        CTR condition ->
-            PercentCondition.valueStr condition
-
-        Sales condition ->
-            AmountCondition.valueStr condition
-
-        Cost condition ->
-            AmountCondition.valueStr condition
-
-        CPC condition ->
-            AmountCondition.valueStr condition
-
-        Status condition ->
-            StatusCondition.valueStr condition
 
 
 type ValueView
@@ -323,6 +245,9 @@ conditionsView currency trigger =
         CPC condition ->
             amountOptions currency condition
 
+        Bid condition ->
+            amountOptions currency condition
+
         Status condition ->
             statusOptions condition
 
@@ -397,7 +322,7 @@ amountValView condition =
 statusValView : StatusCondition -> ValueView
 statusValView condition =
     case condition of
-        StatusCondition.ChangedTo val ->
+        StatusCondition.Equals val ->
             statusSelect val
 
 
@@ -425,6 +350,9 @@ valueView trigger =
         CPC condition ->
             amountValView condition
 
+        Bid condition ->
+            amountValView condition
+
         Status condition ->
             statusValView condition
 
@@ -441,8 +369,139 @@ type alias TriggerJson =
     }
 
 
-decode : Json.Decode.Decoder TriggerJson
-decode =
+criterionKey : Trigger -> String
+criterionKey trigger =
+    case trigger of
+        Clicks _ ->
+            "clicks"
+
+        Impressions _ ->
+            "impressions"
+
+        ACoS _ ->
+            "acos"
+
+        CTR _ ->
+            "ctr"
+
+        Sales _ ->
+            "sales"
+
+        Cost _ ->
+            "cost"
+
+        CPC _ ->
+            "cpc"
+
+        Bid _ ->
+            "bid"
+
+        Status _ ->
+            "status"
+
+
+allCriterionKeys : Currency -> List String
+allCriterionKeys =
+    List.map criterionKey << allTriggers
+
+
+conditionKey : Trigger -> String
+conditionKey trigger =
+    case trigger of
+        Clicks condition ->
+            NatNumCondition.toName condition
+
+        Impressions condition ->
+            NatNumCondition.toName condition
+
+        ACoS condition ->
+            PercentCondition.toName condition
+
+        CTR condition ->
+            PercentCondition.toName condition
+
+        Sales condition ->
+            AmountCondition.toName condition
+
+        Cost condition ->
+            AmountCondition.toName condition
+
+        CPC condition ->
+            AmountCondition.toName condition
+
+        Bid condition ->
+            AmountCondition.toName condition
+
+        Status condition ->
+            StatusCondition.toName condition
+
+
+valueToStr : Trigger -> String
+valueToStr trigger =
+    case trigger of
+        Clicks condition ->
+            NatNumCondition.valueStr condition
+
+        Impressions condition ->
+            NatNumCondition.valueStr condition
+
+        ACoS condition ->
+            PercentCondition.valueStr condition
+
+        CTR condition ->
+            PercentCondition.valueStr condition
+
+        Sales condition ->
+            AmountCondition.valueStr condition
+
+        Cost condition ->
+            AmountCondition.valueStr condition
+
+        CPC condition ->
+            AmountCondition.valueStr condition
+
+        Bid condition ->
+            AmountCondition.valueStr condition
+
+        Status condition ->
+            StatusCondition.valueStr condition
+
+
+valueToType : Trigger -> String
+valueToType trigger =
+    case trigger of
+        Clicks condition ->
+            NatNumCondition.valueType condition
+
+        Impressions condition ->
+            NatNumCondition.valueType condition
+
+        ACoS condition ->
+            PercentCondition.valueType condition
+
+        CTR condition ->
+            PercentCondition.valueType condition
+
+        Sales condition ->
+            AmountCondition.valueType condition
+
+        Cost condition ->
+            AmountCondition.valueType condition
+
+        CPC condition ->
+            AmountCondition.valueType condition
+
+        Bid condition ->
+            AmountCondition.valueType condition
+
+        Status condition ->
+            StatusCondition.valueType condition
+
+
+{-| This only makes a 1:1 Elm-representation of the JSON structure. No validation and no transformation.
+-}
+decode : Currency -> Json.Decode.Decoder TriggerJson
+decode currency =
     Json.Decode.succeed TriggerJson
         |> required "field" Json.Decode.string
         |> required "condition_key" Json.Decode.string
@@ -467,6 +526,8 @@ encode { value, value_type, condition_key, field } =
 jsonToTrigger : Currency -> TriggerJson -> Trigger
 jsonToTrigger currency json =
     fromCriterionName currency json.field
+        -- The next step could potentially crash as by design there can be invalid combinations of criteria and
+        -- conditions coming from the backend. But not in the front-end... ^^
         |> fromConditionName currency json.condition_key
         |> fromValue currency json.value
 
@@ -476,5 +537,33 @@ triggerToJson trigger =
     { field = criterionKey trigger
     , condition_key = conditionKey trigger
     , value = valueToStr trigger
-    , value_type = ""
+    , value_type = valueToType trigger
     }
+
+
+type Logic
+    = And
+    | Or
+
+
+decodeLogic : Int -> Json.Decode.Decoder Logic
+decodeLogic logicInt =
+    case logicInt of
+        0 ->
+            Json.Decode.succeed Or
+
+        1 ->
+            Json.Decode.succeed And
+
+        _ ->
+            Json.Decode.fail "Unsupported logic flag"
+
+
+encodeLogic : Logic -> Json.Encode.Value
+encodeLogic logic =
+    case logic of
+        Or ->
+            Json.Encode.int 0
+
+        And ->
+            Json.Encode.int 1

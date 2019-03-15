@@ -1,4 +1,4 @@
-module PercentCondition exposing (PercentCondition(..), defaultCondition, defaultPercent, fromName, fromValue, percentConditionNames, percentConditions, toName, valueStr)
+module PercentCondition exposing (PercentCondition(..), defaultCondition, defaultPercent, fromName, fromValue, percentConditionNames, percentConditions, toName, valueStr, valueType)
 
 import BaseTypes exposing (Percent, percent, percentFromStr, percentToStr)
 
@@ -37,19 +37,19 @@ toName : PercentCondition -> String
 toName condition =
     case condition of
         LessThan _ ->
-            "LessThan"
+            "less_than"
 
         GreaterThan _ ->
-            "GreaterThan"
+            "greater_than"
 
         Equals _ ->
-            "Equals"
+            "equals"
 
         IncreasedBy _ ->
-            "IncreasedByPercent"
+            "increases_by"
 
         DecreasedBy _ ->
-            "DecreasedByPercent"
+            "decreases_by"
 
 
 percentConditionNames =
@@ -59,19 +59,19 @@ percentConditionNames =
 fromName : String -> PercentCondition
 fromName name =
     case name of
-        "LessThan" ->
+        "less_than" ->
             LessThan defaultPercent
 
-        "GreaterThan" ->
+        "greater_than" ->
             GreaterThan defaultPercent
 
-        "Equals" ->
+        "equals" ->
             Equals defaultPercent
 
-        "IncreasedBy" ->
+        "increases_by" ->
             IncreasedBy defaultPercent
 
-        "DecreasedBy" ->
+        "decreases_by" ->
             DecreasedBy defaultPercent
 
         _ ->
@@ -121,3 +121,9 @@ valueStr condition =
 
             DecreasedBy x ->
                 x
+
+
+valueType : PercentCondition -> String
+valueType _ =
+    -- Only one possiblitiy for now. Param is only there to make the API equal to the other conditions.
+    "percentage"
