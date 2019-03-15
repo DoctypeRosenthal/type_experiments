@@ -526,8 +526,9 @@ encode { value, value_type, condition_key, field } =
 jsonToTrigger : Currency -> TriggerJson -> Trigger
 jsonToTrigger currency json =
     fromCriterionName currency json.field
-        -- The next step could potentially crash as by design there can be invalid combinations of criteria and
-        -- conditions coming from the backend. But not in the front-end... ^^
+        -- JSON has no way of expressing dependencies among fields so everything is possible.
+        -- However, in the frontend there are only certain combinations possible (see type Trigger!).
+        -- So this step can potentially crash.
         |> fromConditionName currency json.condition_key
         |> fromValue currency json.value
 
