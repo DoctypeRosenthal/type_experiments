@@ -42,6 +42,24 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        replaceTrigger : Index -> Trigger -> ( Model, Cmd Msg )
+        replaceTrigger index nextTrigger =
+            ( { model
+                | triggers =
+                    List.indexedMap
+                        (\i x ->
+                            if i /= index then
+                                x
+
+                            else
+                                nextTrigger
+                        )
+                        model.triggers
+              }
+            , Cmd.none
+            )
+    in
     case msg of
         AddTrigger ->
             ( { model | triggers = defaultTrigger :: model.triggers }
@@ -54,52 +72,13 @@ update msg model =
             )
 
         SetTriggerCriterion index string ->
-            ( { model
-                | triggers =
-                    List.indexedMap
-                        (\i x ->
-                            if i /= index then
-                                x
-
-                            else
-                                Trigger.fromCriterionName string
-                        )
-                        model.triggers
-              }
-            , Cmd.none
-            )
+            replaceTrigger index (Trigger.fromCriterionName string)
 
         SetTriggerCondition index trigger string ->
-            ( { model
-                | triggers =
-                    List.indexedMap
-                        (\i x ->
-                            if i /= index then
-                                x
-
-                            else
-                                Trigger.fromConditionName trigger string
-                        )
-                        model.triggers
-              }
-            , Cmd.none
-            )
+            replaceTrigger index (Trigger.fromConditionName trigger string)
 
         SetTriggerValue index trigger string ->
-            ( { model
-                | triggers =
-                    List.indexedMap
-                        (\i x ->
-                            if i /= index then
-                                x
-
-                            else
-                                Trigger.fromValue model.currency trigger string
-                        )
-                        model.triggers
-              }
-            , Cmd.none
-            )
+            replaceTrigger index (Trigger.fromValue model.currency trigger string)
 
 
 
