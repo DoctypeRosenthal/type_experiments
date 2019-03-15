@@ -1,6 +1,6 @@
 module AmountCondition exposing (AmountCondition(..), amountConditionNames, amountConditions, default, defaultAmount, defaultPercent, fromName, fromValue, toName)
 
-import BaseTypes exposing (Amount, Currency, Percent, amount, amountFromStr, euro, percent, percentFromStr)
+import BaseTypes exposing (Amount, Currency, Percent, amount, amountFromStr, percent, percentFromStr)
 
 
 type AmountCondition
@@ -13,26 +13,30 @@ type AmountCondition
     | DecreasedByAmount Amount
 
 
-amountConditions : List AmountCondition
-amountConditions =
-    [ LessThan defaultAmount
-    , GreaterThan defaultAmount
-    , Equals defaultAmount
+amountConditions : Currency -> List AmountCondition
+amountConditions currency =
+    let
+        anAmount =
+            defaultAmount currency
+    in
+    [ LessThan anAmount
+    , GreaterThan anAmount
+    , Equals anAmount
     , IncreasedByPercent defaultPercent
     , DecreasedByPercent defaultPercent
-    , IncreasedByAmount defaultAmount
-    , DecreasedByAmount defaultAmount
+    , IncreasedByAmount anAmount
+    , DecreasedByAmount anAmount
     ]
 
 
-default : AmountCondition
+default : Currency -> AmountCondition
 default =
-    LessThan defaultAmount
+    LessThan << defaultAmount
 
 
-defaultAmount : Amount
-defaultAmount =
-    amount euro 0
+defaultAmount : Currency -> Amount
+defaultAmount currency =
+    amount currency 0
 
 
 defaultPercent : Percent
@@ -65,21 +69,26 @@ toName condition =
             "DecreasedByAmount"
 
 
-amountConditionNames =
-    List.map toName amountConditions
+amountConditionNames : Currency -> List String
+amountConditionNames currency =
+    List.map toName (amountConditions currency)
 
 
-fromName : String -> AmountCondition
-fromName name =
+fromName : Currency -> String -> AmountCondition
+fromName currency name =
+    let
+        anAmount =
+            defaultAmount currency
+    in
     case name of
         "LessThan" ->
-            LessThan defaultAmount
+            LessThan anAmount
 
         "GreaterThan" ->
-            GreaterThan defaultAmount
+            GreaterThan anAmount
 
         "Equals" ->
-            Equals defaultAmount
+            Equals anAmount
 
         "IncreasedByPercent" ->
             IncreasedByPercent defaultPercent
@@ -88,20 +97,20 @@ fromName name =
             DecreasedByPercent defaultPercent
 
         "IncreasedByAmount" ->
-            IncreasedByAmount defaultAmount
+            IncreasedByAmount anAmount
 
         "DecreasedByAmount" ->
-            DecreasedByAmount defaultAmount
+            DecreasedByAmount anAmount
 
         _ ->
-            LessThan defaultAmount
+            LessThan anAmount
 
 
 fromValue : Currency -> AmountCondition -> String -> AmountCondition
 fromValue currency condition string =
     let
         amountWithDefault =
-            Maybe.withDefault defaultAmount << amountFromStr currency
+            Maybe.withDefault (defaultAmount currency) << amountFromStr currency
 
         percentWithDefault =
             Maybe.withDefault defaultPercent << percentFromStr

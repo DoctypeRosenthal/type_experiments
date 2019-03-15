@@ -1,9 +1,8 @@
 module Main exposing (Model, Msg(..), init, main, update, view)
 
-import Array
 import BaseTypes exposing (Currency, amountToStr, natNumToStr, percentToStr, symbolFromAmount, usd)
 import Browser
-import Html exposing (Html, div, h1, h2, img, p, text)
+import Html exposing (Html, div, h2, img, text)
 import Html.Attributes exposing (src)
 import Html.Events
 import Trigger exposing (Trigger, TriggerView, defaultTrigger)
@@ -72,10 +71,10 @@ update msg model =
             )
 
         SetTriggerCriterion index string ->
-            replaceTrigger index (Trigger.fromCriterionName string)
+            replaceTrigger index (Trigger.fromCriterionName model.currency string)
 
         SetTriggerCondition index trigger string ->
-            replaceTrigger index (Trigger.fromConditionName trigger string)
+            replaceTrigger index (Trigger.fromConditionName model.currency trigger string)
 
         SetTriggerValue index trigger string ->
             replaceTrigger index (Trigger.fromValue model.currency trigger string)
@@ -122,11 +121,11 @@ triggerValueToHtml handleChange valueView =
 
 {-| This function should be in this module as it defines HOW to exactly render the Trigger in this context.
 -}
-triggerToHtml : Index -> Trigger -> Html Msg
-triggerToHtml index trigger =
+triggerToHtml : Currency -> Index -> Trigger -> Html Msg
+triggerToHtml currency index trigger =
     let
         { criteria, conditions, value } =
-            Trigger.toView trigger
+            Trigger.toView currency trigger
     in
     Html.p []
         [ triggerOptionsToHtml (SetTriggerCriterion index) criteria
@@ -143,7 +142,7 @@ view model =
          , h2 [] [ text "Triggers" ]
          , Html.button [ Html.Events.onClick AddTrigger ] [ Html.text "add trigger" ]
          ]
-            ++ List.indexedMap triggerToHtml model.triggers
+            ++ List.indexedMap (triggerToHtml model.currency) model.triggers
         )
 
 

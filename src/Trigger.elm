@@ -1,10 +1,10 @@
 module Trigger exposing (OptionsView, Trigger(..), TriggerView, ValueView(..), allCriteriaNames, conditionsView, criteriaView, criterionName, defaultTrigger, fromConditionName, fromCriterionName, fromValue, toView)
 
 import AmountCondition exposing (AmountCondition, amountConditionNames)
-import BaseTypes exposing (Amount, Currency, NatNum, Percent, amountToStr, natNumToStr, percentToStr)
+import BaseTypes exposing (Amount, Currency, NatNum, Percent)
 import NatNumCondition exposing (NatNumCondition, names)
 import PercentCondition exposing (PercentCondition, percentConditionNames)
-import Status exposing (allStatus)
+import Status
 import StatusCondition exposing (StatusCondition, allNames)
 
 
@@ -23,15 +23,19 @@ type Trigger
     | Status StatusCondition
 
 
-allTriggers : List Trigger
-allTriggers =
+allTriggers : Currency -> List Trigger
+allTriggers currency =
+    let
+        defaultAmountCondition =
+            AmountCondition.default currency
+    in
     [ Clicks NatNumCondition.default
     , Impressions NatNumCondition.default
     , ACoS PercentCondition.default
     , CTR PercentCondition.default
-    , Sales AmountCondition.default
-    , Cost AmountCondition.default
-    , CPC AmountCondition.default
+    , Sales defaultAmountCondition
+    , Cost defaultAmountCondition
+    , CPC defaultAmountCondition
     , Status StatusCondition.default
     ]
 
@@ -45,8 +49,12 @@ defaultTrigger =
 -- CONSTRUCTORS FROM STRINGS
 
 
-fromCriterionName : String -> Trigger
-fromCriterionName string =
+fromCriterionName : Currency -> String -> Trigger
+fromCriterionName currency string =
+    let
+        defaultAmountCondition =
+            AmountCondition.default currency
+    in
     case string of
         "Clicks" ->
             Clicks NatNumCondition.default
@@ -61,13 +69,13 @@ fromCriterionName string =
             CTR PercentCondition.default
 
         "Sales" ->
-            Sales AmountCondition.default
+            Sales defaultAmountCondition
 
         "Cost" ->
-            Cost AmountCondition.default
+            Cost defaultAmountCondition
 
         "CPC" ->
-            CPC AmountCondition.default
+            CPC defaultAmountCondition
 
         "Status" ->
             Status StatusCondition.default
@@ -76,8 +84,12 @@ fromCriterionName string =
             Clicks NatNumCondition.default
 
 
-fromConditionName : Trigger -> String -> Trigger
-fromConditionName trigger name =
+fromConditionName : Currency -> Trigger -> String -> Trigger
+fromConditionName currency trigger name =
+    let
+        amountCondition =
+            AmountCondition.fromName currency
+    in
     name
         |> (case trigger of
                 Clicks _ ->
@@ -93,13 +105,13 @@ fromConditionName trigger name =
                     CTR << PercentCondition.fromName
 
                 Sales _ ->
-                    Sales << AmountCondition.fromName
+                    Sales << amountCondition
 
                 Cost _ ->
-                    Cost << AmountCondition.fromName
+                    Cost << amountCondition
 
                 CPC _ ->
-                    CPC << AmountCondition.fromName
+                    CPC << amountCondition
 
                 Status _ ->
                     Status << StatusCondition.fromName
@@ -173,9 +185,9 @@ criterionName trigger =
             "Status"
 
 
-allCriteriaNames : List String
+allCriteriaNames : Currency -> List String
 allCriteriaNames =
-    List.map criterionName allTriggers
+    List.map criterionName << allTriggers
 
 
 type ValueView
@@ -202,14 +214,14 @@ type alias TriggerView =
 
 {-| This function should be in this module because it just creates an abstract representation of a trigger view.
 -}
-toView : Trigger -> TriggerView
-toView trigger =
-    TriggerView (criteriaView trigger) (conditionsView trigger) (valueView trigger)
+toView : Currency -> Trigger -> TriggerView
+toView currency trigger =
+    TriggerView (criteriaView currency trigger) (conditionsView currency trigger) (valueView trigger)
 
 
-criteriaView : Trigger -> OptionsView
-criteriaView trigger =
-    OptionsView allCriteriaNames <| criterionName trigger
+criteriaView : Currency -> Trigger -> OptionsView
+criteriaView currency trigger =
+    OptionsView (allCriteriaNames currency) <| criterionName trigger
 
 
 natNumOptions =
@@ -220,16 +232,16 @@ percentOptions =
     OptionsView percentConditionNames << PercentCondition.toName
 
 
-amountOptions =
-    OptionsView amountConditionNames << AmountCondition.toName
+amountOptions currency =
+    OptionsView (amountConditionNames currency) << AmountCondition.toName
 
 
 statusOptions =
     OptionsView allNames << StatusCondition.toName
 
 
-conditionsView : Trigger -> OptionsView
-conditionsView trigger =
+conditionsView : Currency -> Trigger -> OptionsView
+conditionsView currency trigger =
     case trigger of
         Clicks condition ->
             natNumOptions condition
@@ -244,18 +256,16 @@ conditionsView trigger =
             percentOptions condition
 
         Sales condition ->
-            amountOptions condition
+            amountOptions currency condition
 
         Cost condition ->
-            amountOptions condition
+            amountOptions currency condition
 
         CPC condition ->
-            amountOptions condition
+            amountOptions currency condition
 
         Status condition ->
             statusOptions condition
-
-
 
 
 statusSelect selected =
