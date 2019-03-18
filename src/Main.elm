@@ -13,14 +13,67 @@ import Trigger exposing (Trigger, TriggerView, defaultTrigger)
 
 
 type alias Model =
-    { triggers : List Trigger
+    { monitor : Monitor
+    , triggers : List Trigger
     , currency : Currency
     }
 
 
+type Monitor
+    = MonitorCampaigns
+    | MonitorKeywords
+    | MonitorAsins
+
+
+allMonitors : List Monitor
+allMonitors =
+    [ MonitorCampaigns
+    , MonitorKeywords
+    , MonitorAsins
+    ]
+
+
+defaultMonitor : Monitor
+defaultMonitor =
+    MonitorCampaigns
+
+
+monitorToString : Monitor -> String
+monitorToString monitor =
+    case monitor of
+        MonitorCampaigns ->
+            "campaigns"
+
+        MonitorKeywords ->
+            "keywords"
+
+        MonitorAsins ->
+            "asins"
+
+
+supportedMonitorTriggers : Monitor -> Currency -> List Trigger
+supportedMonitorTriggers monitor currency =
+    let
+        allTriggers =
+            Trigger.allTriggers currency
+
+        withoutBid =
+            List.filter (not << Trigger.isBid) allTriggers
+    in
+    case monitor of
+        MonitorCampaigns ->
+            withoutBid
+
+        MonitorKeywords ->
+            allTriggers
+
+        MonitorAsins ->
+            withoutBid
+
+
 init : ( Model, Cmd Msg )
 init =
-    ( { triggers = [], currency = euro }, Cmd.none )
+    ( { monitor = defaultMonitor, triggers = [], currency = euro }, Cmd.none )
 
 
 
@@ -37,6 +90,7 @@ type Msg
     | SetTriggerCriterion Index String
     | SetTriggerCondition Index Trigger String
     | SetTriggerValue Index Trigger String
+    | SetMonitor Monitor
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -71,13 +125,17 @@ update msg model =
             )
 
         SetTriggerCriterion index string ->
-            replaceTrigger index (Trigger.fromCriterionName model.currency string)
+            replaceTrigger index (Trigger.fromCriterionKey model.currency string)
 
         SetTriggerCondition index trigger string ->
-            replaceTrigger index (Trigger.fromConditionName model.currency string trigger)
+            replaceTrigger index (Trigger.fromConditionKey model.currency string trigger)
 
         SetTriggerValue index trigger string ->
             replaceTrigger index (Trigger.fromValue model.currency string trigger)
+
+        SetMonitor monitor ->
+            -- important : reset triggers to avoid invalid monitor-trigger-combinations!
+            ( { model | monitor = monitor, triggers = [] }, Cmd.none )
 
 
 
@@ -121,11 +179,11 @@ triggerValueToHtml handleChange valueView =
 
 {-| This function should be in this module as it defines HOW to exactly render the Trigger in this context.
 -}
-triggerToHtml : Currency -> Index -> Trigger -> Html Msg
-triggerToHtml currency index trigger =
+triggerToHtml : Currency -> List Trigger -> Index -> Trigger -> Html Msg
+triggerToHtml currency supportedTriggers index trigger =
     let
         { criteria, conditions, value } =
-            Trigger.toView currency trigger
+            Trigger.toView currency trigger supportedTriggers
     in
     Html.p []
         [ triggerOptionsToHtml (SetTriggerCriterion index) criteria
@@ -135,14 +193,23 @@ triggerToHtml currency index trigger =
         ]
 
 
+monitorToHtml : (Monitor -> Msg) -> Monitor -> Monitor -> Html Msg
+monitorToHtml handleClick active x =
+    Html.span []
+        [ Html.input [ Html.Attributes.type_ "radio", Html.Attributes.value <| monitorToString x, Html.Attributes.checked <| x == active, Html.Events.onClick <| handleClick x ] []
+        , Html.span [] [ Html.text <| monitorToString x ]
+        ]
+
+
 view : Model -> Html Msg
 view model =
     div []
         ([ img [ src "/logo.svg" ] []
          , h2 [] [ text "Triggers" ]
+         , Html.p [] <| List.map (monitorToHtml SetMonitor model.monitor) allMonitors
          , Html.button [ Html.Events.onClick AddTrigger ] [ Html.text "add trigger" ]
          ]
-            ++ List.indexedMap (triggerToHtml model.currency) model.triggers
+            ++ List.indexedMap (triggerToHtml model.currency <| supportedMonitorTriggers model.monitor model.currency) model.triggers
         )
 
 

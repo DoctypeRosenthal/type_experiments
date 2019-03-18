@@ -1,4 +1,4 @@
-module Trigger exposing (OptionsView, Trigger(..), TriggerView, ValueView(..), allCriterionKeys, conditionsView, criteriaView, criterionKey, defaultTrigger, fromConditionName, fromCriterionName, fromValue, toView)
+module Trigger exposing (OptionsView, Trigger(..), TriggerView, ValueView(..), allCriterionKeys, allTriggers, conditionsView, criteriaView, criterionKey, defaultTrigger, fromConditionKey, fromCriterionKey, fromValue, isBid, toView)
 
 import AmountCondition exposing (AmountCondition, amountConditionNames)
 import BaseTypes exposing (Amount, Currency, NatNum, Percent)
@@ -15,6 +15,10 @@ import StatusCondition exposing (StatusCondition, allNames)
 -- MODEL
 
 
+{-| This nested structure guarantees at compile time that there will be no invalid combinations of criteria, conditions
+and values. Test-free!
+So if you start implement a new Trigger type, start here!
+-}
 type Trigger
     = Clicks NatNumCondition
     | Impressions NatNumCondition
@@ -45,6 +49,16 @@ allTriggers currency =
     ]
 
 
+isBid : Trigger -> Bool
+isBid x =
+    case x of
+        Bid _ ->
+            True
+
+        _ ->
+            False
+
+
 defaultTrigger : Trigger
 defaultTrigger =
     Clicks NatNumCondition.defaultCondition
@@ -54,13 +68,17 @@ defaultTrigger =
 -- CONSTRUCTORS FROM STRINGS
 
 
-fromCriterionName : Currency -> String -> Trigger
-fromCriterionName currency string =
+type alias CriterionKey =
+    String
+
+
+fromCriterionKey : Currency -> CriterionKey -> Trigger
+fromCriterionKey currency key =
     let
         defaultAmountCondition =
             AmountCondition.defaultCondition currency
     in
-    case string of
+    case key of
         "clicks" ->
             Clicks NatNumCondition.defaultCondition
 
@@ -92,13 +110,44 @@ fromCriterionName currency string =
             Clicks NatNumCondition.defaultCondition
 
 
-fromConditionName : Currency -> String -> Trigger -> Trigger
-fromConditionName currency name trigger =
+criterionKey : Trigger -> CriterionKey
+criterionKey trigger =
+    case trigger of
+        Clicks _ ->
+            "clicks"
+
+        Impressions _ ->
+            "impressions"
+
+        ACoS _ ->
+            "acos"
+
+        CTR _ ->
+            "ctr"
+
+        Sales _ ->
+            "sales"
+
+        Cost _ ->
+            "cost"
+
+        CPC _ ->
+            "cpc"
+
+        Bid _ ->
+            "bid"
+
+        Status _ ->
+            "status"
+
+
+fromConditionKey : Currency -> String -> Trigger -> Trigger
+fromConditionKey currency key trigger =
     let
         amountCondition =
             AmountCondition.fromName currency
     in
-    name
+    key
         |> (case trigger of
                 Clicks _ ->
                     Clicks << NatNumCondition.fromName
@@ -127,6 +176,41 @@ fromConditionName currency name trigger =
                 Status _ ->
                     Status << StatusCondition.fromName
            )
+
+
+type alias ConditionKey =
+    String
+
+
+conditionKey : Trigger -> ConditionKey
+conditionKey trigger =
+    case trigger of
+        Clicks condition ->
+            NatNumCondition.toName condition
+
+        Impressions condition ->
+            NatNumCondition.toName condition
+
+        ACoS condition ->
+            PercentCondition.toName condition
+
+        CTR condition ->
+            PercentCondition.toName condition
+
+        Sales condition ->
+            AmountCondition.toName condition
+
+        Cost condition ->
+            AmountCondition.toName condition
+
+        CPC condition ->
+            AmountCondition.toName condition
+
+        Bid condition ->
+            AmountCondition.toName condition
+
+        Status condition ->
+            StatusCondition.toName condition
 
 
 fromValue : Currency -> String -> Trigger -> Trigger
@@ -195,14 +279,23 @@ type alias TriggerView =
 
 {-| This function should be in this module because it just creates an abstract representation of a trigger view.
 -}
-toView : Currency -> Trigger -> TriggerView
-toView currency trigger =
-    TriggerView (criteriaView currency trigger) (conditionsView currency trigger) (valueView trigger)
+toView : Currency -> Trigger -> List Trigger -> TriggerView
+toView currency selectedTrigger possibleTriggers =
+    TriggerView (criteriaView selectedTrigger possibleTriggers) (conditionsView currency selectedTrigger) (valueView selectedTrigger)
 
 
-criteriaView : Currency -> Trigger -> OptionsView
-criteriaView currency trigger =
-    OptionsView (allCriterionKeys currency) <| criterionKey trigger
+{-| As third argument you can specify a rule to filter all triggers. Keep all Triggers which satisfy the rule.
+-}
+criteriaView : Trigger -> List Trigger -> OptionsView
+criteriaView trigger possibleTriggers =
+    let
+        allKeys =
+            List.map criterionKey possibleTriggers
+
+        activeCriterionKey =
+            criterionKey trigger
+    in
+    OptionsView allKeys activeCriterionKey
 
 
 natNumOptions =
@@ -369,71 +462,9 @@ type alias TriggerJson =
     }
 
 
-criterionKey : Trigger -> String
-criterionKey trigger =
-    case trigger of
-        Clicks _ ->
-            "clicks"
-
-        Impressions _ ->
-            "impressions"
-
-        ACoS _ ->
-            "acos"
-
-        CTR _ ->
-            "ctr"
-
-        Sales _ ->
-            "sales"
-
-        Cost _ ->
-            "cost"
-
-        CPC _ ->
-            "cpc"
-
-        Bid _ ->
-            "bid"
-
-        Status _ ->
-            "status"
-
-
 allCriterionKeys : Currency -> List String
 allCriterionKeys =
     List.map criterionKey << allTriggers
-
-
-conditionKey : Trigger -> String
-conditionKey trigger =
-    case trigger of
-        Clicks condition ->
-            NatNumCondition.toName condition
-
-        Impressions condition ->
-            NatNumCondition.toName condition
-
-        ACoS condition ->
-            PercentCondition.toName condition
-
-        CTR condition ->
-            PercentCondition.toName condition
-
-        Sales condition ->
-            AmountCondition.toName condition
-
-        Cost condition ->
-            AmountCondition.toName condition
-
-        CPC condition ->
-            AmountCondition.toName condition
-
-        Bid condition ->
-            AmountCondition.toName condition
-
-        Status condition ->
-            StatusCondition.toName condition
 
 
 valueToStr : Trigger -> String
@@ -525,11 +556,11 @@ encode { value, value_type, condition_key, field } =
 
 jsonToTrigger : Currency -> TriggerJson -> Trigger
 jsonToTrigger currency json =
-    fromCriterionName currency json.field
+    fromCriterionKey currency json.field
         -- JSON has no way of expressing dependencies among fields so everything is possible.
         -- However, in the frontend there are only certain combinations possible (see type Trigger!).
         -- So this step can potentially crash.
-        |> fromConditionName currency json.condition_key
+        |> fromConditionKey currency json.condition_key
         |> fromValue currency json.value
 
 
@@ -568,3 +599,10 @@ encodeLogic logic =
 
         And ->
             Json.Encode.int 1
+
+
+
+-- TODOs:
+-- * write monitor type dependent filtering of triggers
+-- * write tests for decoders and transformators
+-- * write triggerToDisplayName and conditionToDisplayName (copy&paste from gitlab)
