@@ -1,4 +1,4 @@
-module Trigger exposing (OptionsView, Trigger(..), TriggerView, ValueView(..), allCriterionKeys, allTriggers, conditionsView, criteriaView, criterionKey, defaultTrigger, fromConditionKey, fromCriterionKey, fromValue, isBid, toView)
+module Trigger exposing (Logic(..), OptionsView, Trigger(..), TriggerView, ValueView(..), allCriterionKeys, allTriggers, conditionsView, criteriaView, criterionKey, defaultTrigger, fromConditionKey, fromCriterionKey, fromValue, isBid, toView)
 
 import AmountCondition exposing (AmountCondition, amountConditionNames)
 import BaseTypes exposing (Amount, Currency, NatNum, Percent)
@@ -13,6 +13,11 @@ import StatusCondition exposing (StatusCondition, allNames)
 
 
 -- MODEL
+
+
+type Logic
+    = And
+    | Or
 
 
 {-| This nested structure guarantees at compile time that there will be no invalid combinations of criteria, conditions
@@ -571,11 +576,6 @@ triggerToJson trigger =
     , value = valueToStr trigger
     , value_type = valueToType trigger
     }
-
-
-type Logic
-    = And
-    | Or
 
 
 decodeLogic : Int -> Json.Decode.Decoder Logic

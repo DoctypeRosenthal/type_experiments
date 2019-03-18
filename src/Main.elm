@@ -16,6 +16,7 @@ type alias Model =
     { monitor : Monitor
     , triggers : List Trigger
     , currency : Currency
+    , triggerLogic : Trigger.Logic
     }
 
 
@@ -73,7 +74,13 @@ supportedMonitorTriggers monitor currency =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { monitor = defaultMonitor, triggers = [], currency = euro }, Cmd.none )
+    ( { monitor = defaultMonitor
+      , triggerLogic = Trigger.And
+      , triggers = []
+      , currency = euro
+      }
+    , Cmd.none
+    )
 
 
 
@@ -91,6 +98,7 @@ type Msg
     | SetTriggerCondition Index Trigger String
     | SetTriggerValue Index Trigger String
     | SetMonitor Monitor
+    | SetTriggerLogic Bool
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -115,7 +123,7 @@ update msg model =
     in
     case msg of
         AddTrigger ->
-            ( { model | triggers = defaultTrigger :: model.triggers }
+            ( { model | triggers = model.triggers ++ [ defaultTrigger ] }
             , Cmd.none
             )
 
@@ -136,6 +144,18 @@ update msg model =
         SetMonitor monitor ->
             -- important : reset triggers to avoid invalid monitor-trigger-combinations!
             ( { model | monitor = monitor, triggers = [] }, Cmd.none )
+
+        SetTriggerLogic setToAnd ->
+            ( { model
+                | triggerLogic =
+                    if setToAnd then
+                        Trigger.And
+
+                    else
+                        Trigger.Or
+              }
+            , Cmd.none
+            )
 
 
 
@@ -205,11 +225,21 @@ view : Model -> Html Msg
 view model =
     div []
         ([ img [ src "/logo.svg" ] []
-         , h2 [] [ text "Triggers" ]
+         , h2 [] [ text "Monitor Types" ]
          , Html.p [] <| List.map (monitorToHtml SetMonitor model.monitor) allMonitors
-         , Html.button [ Html.Events.onClick AddTrigger ] [ Html.text "add trigger" ]
+         , h2 [] [ text "Triggers" ]
+         , Html.p []
+            [ Html.text "Alle Trigger müssen zutreffen"
+            , Html.input
+                [ Html.Attributes.type_ "checkbox"
+                , Html.Attributes.selected <| model.triggerLogic == Trigger.And
+                , Html.Events.onCheck SetTriggerLogic
+                ]
+                []
+            ]
          ]
             ++ List.indexedMap (triggerToHtml model.currency <| supportedMonitorTriggers model.monitor model.currency) model.triggers
+            ++ [ Html.button [ Html.Events.onClick AddTrigger ] [ Html.text "add trigger" ] ]
         )
 
 
