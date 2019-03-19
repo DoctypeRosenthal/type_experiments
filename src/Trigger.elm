@@ -1,7 +1,8 @@
-module Trigger exposing (Logic(..), OptionsView, Trigger(..), TriggerView, ValueView(..), allCriterionKeys, allTriggers, conditionsView, criteriaView, criterionKey, defaultTrigger, fromConditionKey, fromCriterionKey, fromValue, isBid, toView)
+module Trigger exposing (Index, Logic(..), OptionsView, Trigger(..), TriggerJson, TriggerView, ValueView(..), allCriterionKeys, allTriggers, conditionsView, criteriaView, criterionKey, decode, decodeLogic, defaultTrigger, encode, encodeLogic, fromConditionKey, fromCriterionKey, fromValue, isBid, jsonToTrigger, toView, triggerToJson)
 
 import AmountCondition exposing (AmountCondition, amountConditionNames)
-import BaseTypes exposing (Amount, Currency, NatNum, Percent)
+import BaseTypes exposing (NatNum, Percent)
+import Currency exposing (Amount, Currency)
 import Json.Decode
 import Json.Decode.Pipeline exposing (required)
 import Json.Encode
@@ -13,6 +14,10 @@ import StatusCondition exposing (StatusCondition, allNames)
 
 
 -- MODEL
+
+
+type alias Index =
+    Int
 
 
 type Logic

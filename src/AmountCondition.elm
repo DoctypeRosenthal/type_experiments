@@ -1,6 +1,7 @@
 module AmountCondition exposing (AmountCondition(..), amountConditionNames, amountConditions, defaultAmount, defaultCondition, defaultPercent, fromName, fromValue, toName, valueStr, valueType)
 
-import BaseTypes exposing (Amount, Currency, Percent, amount, amountFromStr, amountToStr, percent, percentFromStr, percentToStr)
+import BaseTypes exposing (Percent, percent, percentFromStr, percentToStr)
+import Currency exposing (Amount, Currency, amountToStr)
 
 
 type AmountCondition
@@ -38,7 +39,7 @@ defaultCondition =
 
 defaultAmount : Currency -> Amount
 defaultAmount currency =
-    amount currency 0
+    Currency.amount currency 0
 
 
 defaultPercent : Percent
@@ -112,7 +113,7 @@ fromValue : Currency -> AmountCondition -> String -> AmountCondition
 fromValue currency condition string =
     let
         amountWithDefault =
-            Maybe.withDefault (defaultAmount currency) << amountFromStr currency
+            Maybe.withDefault (defaultAmount currency) << Currency.amountFromStr currency
 
         percentWithDefault =
             Maybe.withDefault defaultPercent << percentFromStr
