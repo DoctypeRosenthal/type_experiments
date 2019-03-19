@@ -1,6 +1,7 @@
 module Tests exposing (all)
 
-import BaseTypes exposing (natNum, percent)
+import BaseTypes.NatNum as NatNum
+import BaseTypes.Percent as Percent
 import Currency
 import Expect
 import Json.Decode
@@ -8,7 +9,7 @@ import NatNumCondition
 import PercentCondition
 import Rule exposing (Msg(..), init, update)
 import Test exposing (..)
-import Trigger exposing (defaultTrigger)
+import Trigger
 
 
 
@@ -73,9 +74,9 @@ transformed =
     , monitor = Rule.MonitorCampaigns
     , triggerLogic = Trigger.And
     , triggers =
-        [ Trigger.ACoS <| PercentCondition.GreaterThan <| percent 15
-        , Trigger.ACoS <| PercentCondition.LessThan <| percent 25
-        , Trigger.Clicks <| NatNumCondition.GreaterThan <| natNum 9
+        [ Trigger.ACoS <| PercentCondition.GreaterThan <| Percent.fromInt 15
+        , Trigger.ACoS <| PercentCondition.LessThan <| Percent.fromInt 25
+        , Trigger.Clicks <| NatNumCondition.GreaterThan <| NatNum.fromInt 9
         ]
     }
 
@@ -93,7 +94,7 @@ all =
                         update Rule.AddTrigger initModel
 
                     res =
-                        { triggers = [ Trigger.Clicks <| NatNumCondition.LessThan <| natNum 0 ] }
+                        { triggers = [ Trigger.Clicks <| NatNumCondition.LessThan <| NatNum.fromInt 0 ] }
                 in
                 Expect.equal model.triggers res.triggers
         , test "Parse JSON" <|

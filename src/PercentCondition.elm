@@ -1,6 +1,6 @@
 module PercentCondition exposing (PercentCondition(..), defaultCondition, defaultPercent, fromName, fromValue, percentConditionNames, percentConditions, toName, valueStr, valueType)
 
-import BaseTypes exposing (Percent, percent, percentFromStr, percentToStr)
+import BaseTypes.Percent as Percent exposing (Percent)
 
 
 type PercentCondition
@@ -30,7 +30,7 @@ defaultCondition =
 
 defaultPercent : Percent
 defaultPercent =
-    percent 0
+    Percent.fromInt 0
 
 
 toName : PercentCondition -> String
@@ -82,7 +82,7 @@ fromValue : PercentCondition -> String -> PercentCondition
 fromValue condition string =
     let
         percentWithDefault =
-            Maybe.withDefault defaultPercent << percentFromStr
+            Maybe.withDefault defaultPercent << Percent.fromStr
     in
     string
         |> (case condition of
@@ -105,7 +105,7 @@ fromValue condition string =
 
 valueStr : PercentCondition -> String
 valueStr condition =
-    percentToStr <|
+    Percent.toStr <|
         case condition of
             LessThan x ->
                 x

@@ -1,6 +1,7 @@
 module Rule exposing (Model, Monitor(..), Msg(..), allMonitors, decoder, defaultMonitor, encode, init, monitorToString, supportedMonitorTriggers, update, view)
 
-import BaseTypes exposing (natNumToStr, percentToStr)
+import BaseTypes.NatNum as NatNum
+import BaseTypes.Percent as Percent
 import Currency exposing (Currency)
 import Html exposing (Html)
 import Html.Attributes
@@ -221,10 +222,10 @@ triggerValueToHtml handleChange valueView =
             numberInput [ Html.Attributes.step "0.1" ] handleChange (Currency.symbolFromAmount amount) (Currency.amountToStr amount)
 
         Trigger.PercentInput percent ->
-            numberInput [ Html.Attributes.step "1" ] handleChange "%" (percentToStr percent)
+            numberInput [ Html.Attributes.step "1" ] handleChange "%" (Percent.toStr percent)
 
         Trigger.NatNumInput natNum ->
-            numberInput [ Html.Attributes.step "1" ] handleChange "" (natNumToStr natNum)
+            numberInput [ Html.Attributes.step "1" ] handleChange "" (NatNum.toStr natNum)
 
         Trigger.StatusSelect optionsView ->
             triggerOptionsToHtml handleChange optionsView

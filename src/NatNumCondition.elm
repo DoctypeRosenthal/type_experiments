@@ -1,6 +1,7 @@
 module NatNumCondition exposing (NatNumCondition(..), defaultCondition, defaultNatNum, defaultPercent, fromName, fromValue, names, natNumConditions, toName, valueStr, valueType)
 
-import BaseTypes exposing (NatNum, Percent, natNum, natNumFromStr, natNumToStr, percent, percentFromStr, percentToStr)
+import BaseTypes.NatNum as NatNum exposing (NatNum)
+import BaseTypes.Percent as Percent exposing (Percent)
 
 
 type NatNumCondition
@@ -30,12 +31,12 @@ defaultCondition =
 
 defaultNatNum : NatNum
 defaultNatNum =
-    natNum 0
+    NatNum.fromInt 0
 
 
 defaultPercent : Percent
 defaultPercent =
-    percent 0
+    Percent.fromInt 0
 
 
 toName : NatNumCondition -> String
@@ -87,10 +88,10 @@ fromValue : NatNumCondition -> String -> NatNumCondition
 fromValue condition string =
     let
         natNumWithDefault =
-            Maybe.withDefault defaultNatNum << natNumFromStr
+            Maybe.withDefault defaultNatNum << NatNum.fromStr
 
         percentWithDefault =
-            Maybe.withDefault defaultPercent << percentFromStr
+            Maybe.withDefault defaultPercent << Percent.fromStr
     in
     string
         |> (case condition of
@@ -115,19 +116,20 @@ valueStr : NatNumCondition -> String
 valueStr condition =
     case condition of
         LessThan x ->
-            natNumToStr x
+            NatNum.toStr x
 
         GreaterThan x ->
-            natNumToStr x
+            NatNum.toStr x
 
         Equals x ->
-            natNumToStr x
+            NatNum.toStr x
 
         IncreasedBy x ->
-            percentToStr x
+            Percent.toStr x
 
         DecreasedBy x ->
-            percentToStr x
+            Percent.toStr x
+
 
 valueType : NatNumCondition -> String
 valueType condition =
@@ -138,4 +140,5 @@ valueType condition =
         DecreasedBy x ->
             "percentage"
 
-        _ -> "natural_number"
+        _ ->
+            "natural_number"

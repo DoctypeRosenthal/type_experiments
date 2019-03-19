@@ -1,4 +1,7 @@
-module Status exposing (Status(..), allStatus, allNames, fromString, toName)
+module Status exposing (Status(..), allNames, allStatus, fromString, toName)
+
+{-| Implements the bid automation-specific Status type.
+-}
 
 
 type Status

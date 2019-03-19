@@ -1,7 +1,8 @@
 module Trigger exposing (Index, Logic(..), OptionsView, Trigger(..), TriggerJson, TriggerView, ValueView(..), allCriterionKeys, allTriggers, conditionsView, criteriaView, criterionKey, decode, decodeLogic, defaultTrigger, encode, encodeLogic, fromConditionKey, fromCriterionKey, fromValue, isBid, jsonToTrigger, toView, triggerToJson)
 
 import AmountCondition exposing (AmountCondition, amountConditionNames)
-import BaseTypes exposing (NatNum, Percent)
+import BaseTypes.NatNum exposing (NatNum)
+import BaseTypes.Percent exposing (Percent)
 import Currency exposing (Amount, Currency)
 import Json.Decode
 import Json.Decode.Pipeline exposing (required)
